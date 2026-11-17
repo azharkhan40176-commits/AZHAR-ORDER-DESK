@@ -806,6 +806,7 @@
                   class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs w-full sm:w-64 focus:ring-2 focus:ring-navy-800" />
                 <select id="dispatch-status-filter" onchange="renderDispatchesTable()" class="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium">
                   <option value="ALL">All Dispatches</option>
+                  <option value="Pending" ${d.dispatch_status === 'Pending' ? 'selected' : ''}>Pending (Revert)</option>
                   <option value="Dispatched">Dispatched</option>
                   <option value="In Transit">In Transit</option>
                   <option value="Delivered">Delivered</option>
