@@ -1,0 +1,2739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PRO INDIA ORDER DESK | PRO INDIA ENTERPRISES</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- HTML5-QRCode for Android/Mobile Camera Barcode Scanning -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- Tesseract.js for Free Client-Side Full-Label OCR Reading -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              950: '#070E1B',
+              900: '#0B192C',
+              800: '#132744',
+              700: '#1E3A63',
+            },
+            gold: {
+              400: '#E5C158',
+              500: '#D4AF37',
+              600: '#B59224',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F4F6F9;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    
+    /* Scanner frame overrides */
+    #reader video, #return-reader video {
+      border-radius: 0.75rem !important;
+      object-fit: cover !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-gold-500 selection:text-navy-900">
+
+  <!-- GLOBAL NETWORK / SUPABASE CONNECTION BANNER -->
+  <div id="network-banner" class="hidden bg-red-600 text-white text-xs font-medium py-1.5 px-4 text-center z-50 flex items-center justify-center gap-2">
+    <i data-lucide="wifi-off" class="w-4 h-4"></i>
+    <span id="network-banner-text">Offline or Database Disconnected. Changes cannot be saved until connection is restored.</span>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- =====================================================================
+       1. LOGIN VIEW (PROTECTED ENTRY)
+       ===================================================================== -->
+  <div id="login-view" class="min-h-screen flex items-center justify-center bg-navy-950 p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+      <div class="bg-navy-900 px-8 py-7 text-center border-b-2 border-gold-500">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-navy-800 border border-gold-500/40 text-gold-500 mb-3 shadow-inner">
+          <i data-lucide="shield-check" class="w-8 h-8"></i>
+        </div>
+        <h1 class="text-xl font-extrabold tracking-tight text-white">PRO INDIA ORDER DESK</h1>
+        <p class="text-xs font-medium text-gold-400 tracking-widest uppercase mt-1">PRO INDIA ENTERPRISES</p>
+      </div>
+
+      <div class="p-8">
+        <!-- Real Supabase Connection Status Indicator -->
+        <div id="auth-db-status" class="mb-6 flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <span class="text-slate-600 font-medium flex items-center gap-2">
+            <span id="auth-db-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            Supabase Cloud Status
+          </span>
+          <span id="auth-db-text" class="font-semibold text-slate-700">Verifying...</span>
+        </div>
+
+        <form id="login-form" class="space-y-5">
+          <div>
+            <label for="login-email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Owner Email</label>
+            <div class="relative">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+              <input type="email" id="login-email" required autocomplete="email" placeholder="owner@proindiaenterprises.com"
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy-800 focus:border-navy-800 transition" />
+            </div>
+          </div>
+
+          <div>
+            <label for="login-password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
+            <div class="relative">
+              <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+              <input type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••••••"
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy-800 focus:border-navy-800 transition" />
+            </div>
+          </div>
+
+          <div id="login-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium"></div>
+
+          <button type="submit" id="login-submit-btn"
+            class="w-full py-3 px-4 bg-navy-900 hover:bg-navy-800 text-white font-semibold rounded-xl shadow-md transition flex items-center justify-center gap-2 border border-gold-500/30">
+            <span>Sign In to Order Desk</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 text-gold-400"></i>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Authorized Owner Access Only. Protected by PostgreSQL Row Level Security (RLS). All actions are logged in IST (Asia/Kolkata).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       2. AUTHENTICATED APPLICATION SHELL
+       ===================================================================== -->
+  <div id="app-shell" class="hidden min-h-screen flex flex-col md:flex-row">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-navy-900 text-white border-r border-navy-800 z-30">
+      <!-- Brand Header -->
+      <div class="px-6 py-5 border-b border-navy-800 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-navy-800 border border-gold-500/50 flex items-center justify-center text-gold-500 shrink-0">
+          <i data-lucide="layers" class="w-5 h-5"></i>
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-sm font-extrabold tracking-tight text-white truncate">PRO INDIA</h2>
+          <p class="text-[10px] font-semibold text-gold-400 tracking-widest uppercase truncate">ORDER DESK</p>
+        </div>
+      </div>
+
+      <!-- Live Cloud Sync Pill -->
+      <div class="px-4 pt-4">
+        <div class="px-3 py-2 rounded-xl bg-navy-950/70 border border-navy-800 flex items-center justify-between text-xs">
+          <span class="flex items-center gap-2 text-slate-300">
+            <span id="sidebar-sync-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="sidebar-sync-label">Live Sync</span>
+          </span>
+          <button onclick="syncAllData(true)" title="Force Refresh Data" class="text-gold-400 hover:text-gold-300 p-1 rounded-lg">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <button data-nav="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard</span>
+        </button>
+        <button data-nav="scanner" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="scan-barcode" class="w-4 h-4"></i>
+          <span>Dispatch Scanner</span>
+        </button>
+        <button data-nav="orders" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="package-plus" class="w-4 h-4"></i>
+          <span>Orders & Entry</span>
+        </button>
+        <button data-nav="dispatches" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          <span>Dispatch & Delivery</span>
+        </button>
+        <button data-nav="returns" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="undo-2" class="w-4 h-4"></i>
+          <span>Returns / RTO</span>
+        </button>
+        <button data-nav="commission" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="indian-rupee" class="w-4 h-4"></i>
+          <span>Commission Ledger</span>
+        </button>
+        <button data-nav="skus" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="tags" class="w-4 h-4"></i>
+          <span>SKU Master</span>
+        </button>
+        <button data-nav="audit" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+          <i data-lucide="history" class="w-4 h-4"></i>
+          <span>Audit Logs</span>
+        </button>
+      </nav>
+
+      <!-- User Footer -->
+      <div class="p-4 border-t border-navy-800 bg-navy-950/50">
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-xs font-semibold text-white truncate" id="user-display-name">Owner</p>
+            <p class="text-[11px] text-slate-400 truncate" id="user-display-email">owner@proindia</p>
+          </div>
+          <button onclick="handleLogout()" title="Sign Out" class="p-2 rounded-xl bg-navy-800 hover:bg-red-600/90 text-slate-300 hover:text-white transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE TOP HEADER -->
+    <header class="md:hidden sticky top-0 z-30 bg-navy-900 text-white px-4 py-3 flex items-center justify-between border-b border-navy-800 shadow-sm">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-navy-800 border border-gold-500/50 flex items-center justify-center text-gold-500">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-extrabold leading-none">PRO INDIA ORDER DESK</h1>
+          <p class="text-[10px] text-gold-400 font-medium mt-0.5" id="mobile-ist-clock">IST Live</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="syncAllData(true)" class="p-2 rounded-lg bg-navy-800 text-gold-400 active:scale-95">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+        <button onclick="navigateTo('skus')" class="p-2 rounded-lg bg-navy-800 text-slate-200 active:scale-95" title="SKU Master">
+          <i data-lucide="tags" class="w-4 h-4"></i>
+        </button>
+        <button onclick="handleLogout()" class="p-2 rounded-lg bg-navy-800 text-red-400 active:scale-95" title="Logout">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 md:pl-64 pb-24 md:pb-10">
+      <!-- Desktop Top Bar -->
+      <div class="hidden md:flex items-center justify-between bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-20">
+        <div>
+          <h1 id="page-title" class="text-lg font-bold text-navy-900">Executive Dashboard</h1>
+          <p id="page-subtitle" class="text-xs text-slate-500">Real-time manufacturing dispatch, returns & ₹2/pair commission overview</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <p class="text-xs font-semibold text-navy-900" id="desktop-ist-clock">--:--:-- IST</p>
+            <p class="text-[11px] text-slate-500">Asia/Kolkata Timezone</p>
+          </div>
+          <button onclick="navigateTo('scanner')" class="px-4 py-2 bg-navy-900 hover:bg-navy-800 text-white text-xs font-semibold rounded-xl shadow-sm border border-gold-500/40 flex items-center gap-2 transition">
+            <i data-lucide="scan-barcode" class="w-4 h-4 text-gold-400"></i>
+            <span>Quick Scan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENT PAGES CONTAINER -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
+
+        <!-- ===============================================================
+             PAGE 1: DASHBOARD
+             =============================================================== -->
+        <section id="page-dashboard" class="app-page space-y-6">
+          <!-- Primary KPI Grid (10 Mandatory Live Metrics) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+            <!-- 1. Total Orders -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Orders</span>
+                <span class="p-1.5 rounded-lg bg-slate-100 text-navy-900"><i data-lucide="shopping-bag" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-total-orders" class="text-2xl font-extrabold text-navy-900">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">All recorded orders</p>
+            </div>
+
+            <!-- 2. Total Dispatched Orders -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Dispatched</span>
+                <span class="p-1.5 rounded-lg bg-blue-50 text-blue-700"><i data-lucide="truck" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-dispatched-orders" class="text-2xl font-extrabold text-blue-700">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Handed to courier</p>
+            </div>
+
+            <!-- 3. Delivered Orders -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Delivered</span>
+                <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700"><i data-lucide="check-circle-2" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-delivered-orders" class="text-2xl font-extrabold text-emerald-700">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Successfully delivered</p>
+            </div>
+
+            <!-- 4. Pending Orders -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pending Dispatch</span>
+                <span class="p-1.5 rounded-lg bg-amber-50 text-amber-700"><i data-lucide="clock" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-pending-orders" class="text-2xl font-extrabold text-amber-600">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Awaiting scan out</p>
+            </div>
+
+            <!-- 5. Return / RTO Orders -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Return / RTO</span>
+                <span class="p-1.5 rounded-lg bg-red-50 text-red-700"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-return-orders" class="text-2xl font-extrabold text-red-600">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Returned or RTO</p>
+            </div>
+
+            <!-- 6. Total Pairs Dispatched -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pairs Dispatched</span>
+                <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-700"><i data-lucide="package" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-pairs-dispatched" class="text-2xl font-extrabold text-navy-900">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Bracket pairs shipped</p>
+            </div>
+
+            <!-- 7. Successfully Delivered Pairs -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Delivered Pairs</span>
+                <span class="p-1.5 rounded-lg bg-teal-50 text-teal-700"><i data-lucide="award" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-delivered-pairs" class="text-2xl font-extrabold text-teal-700">0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Eligible @ ₹2 / pair</p>
+            </div>
+
+            <!-- 8. Total Commission Earned (Gross) -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Gross Commission</span>
+                <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-gross-commission" class="text-2xl font-extrabold text-emerald-700">₹0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Earned on deliveries</p>
+            </div>
+
+            <!-- 9. Commission Adjustments -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Adjustments</span>
+                <span class="p-1.5 rounded-lg bg-rose-50 text-rose-700"><i data-lucide="trending-down" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-commission-adjustments" class="text-2xl font-extrabold text-rose-600">₹0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Post-delivery returns</p>
+            </div>
+
+            <!-- 10. Net Commission Payable (Royal Gold Card) -->
+            <div class="col-span-2 sm:col-span-1 bg-navy-900 p-4 sm:p-5 rounded-2xl border-2 border-gold-500 shadow-md text-white">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gold-400">Net Commission</span>
+                <span class="p-1.5 rounded-lg bg-navy-800 text-gold-400"><i data-lucide="indian-rupee" class="w-4 h-4"></i></span>
+              </div>
+              <p id="kpi-net-commission" class="text-2xl font-extrabold text-white">₹0</p>
+              <p class="text-[11px] text-gold-400/90 mt-1">Payable balance (₹2/pair)</p>
+            </div>
+          </div>
+
+          <!-- Quick Action Cards + Recent Activity -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Quick Operations -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+              <h3 class="text-sm font-bold text-navy-900 flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4 text-gold-600"></i>
+                Warehouse Operations
+              </h3>
+              <p class="text-xs text-slate-500">Select an immediate floor task:</p>
+              <div class="grid grid-cols-1 gap-2.5 pt-1">
+                <button onclick="navigateTo('scanner')" class="w-full p-3.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-left flex items-center justify-between transition shadow-sm">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-navy-800 text-gold-400"><i data-lucide="scan-barcode" class="w-5 h-5"></i></div>
+                    <div>
+                      <p class="text-xs font-bold">Scan Dispatch Barcode</p>
+                      <p class="text-[11px] text-slate-300">Camera / USB scanner out</p>
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-gold-400"></i>
+                </button>
+
+                <button onclick="navigateTo('orders')" class="w-full p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-navy-900 text-left flex items-center justify-between transition">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-white border border-slate-200 text-navy-800"><i data-lucide="plus-circle" class="w-5 h-5"></i></div>
+                    <div>
+                      <p class="text-xs font-bold">Add New Marketplace Order</p>
+                      <p class="text-[11px] text-slate-500">Meesho / Flipkart entry</p>
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                </button>
+
+                <button onclick="navigateTo('returns')" class="w-full p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-navy-900 text-left flex items-center justify-between transition">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-white border border-slate-200 text-red-600"><i data-lucide="undo-2" class="w-5 h-5"></i></div>
+                    <div>
+                      <p class="text-xs font-bold">Scan Return / RTO Parcel</p>
+                      <p class="text-[11px] text-slate-500">Log condition & restock</p>
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Recent Dispatches Summary -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-navy-900">Latest Dispatched Shipments</h3>
+                <button onclick="navigateTo('dispatches')" class="text-xs font-semibold text-navy-700 hover:text-gold-600">View All →</button>
+              </div>
+              <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <th class="py-2.5 px-3">AWB / Order</th>
+                      <th class="py-2.5 px-3">Marketplace</th>
+                      <th class="py-2.5 px-3">SKU / Pairs</th>
+                      <th class="py-2.5 px-3">Status</th>
+                      <th class="py-2.5 px-3">Dispatched (IST)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-recent-dispatches" class="divide-y divide-slate-100 text-xs">
+                    <tr><td colspan="5" class="py-8 text-center text-slate-400">Loading live cloud data...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 2: DISPATCH BARCODE SCANNER (CAMERA + USB + MANUAL)
+             =============================================================== -->
+        <section id="page-scanner" class="app-page hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Column: Scanner Input & Camera -->
+            <div class="lg:col-span-6 space-y-4">
+              <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 class="text-base font-bold text-navy-900">Dispatch Barcode Scanner</h2>
+                    <p class="text-xs text-slate-500">Supports Windows USB Laser Scanner, Android Camera & Manual Entry</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-gold-500/15 text-navy-900 border border-gold-500/40 text-[11px] font-bold">
+                    USB Ready
+                  </span>
+                </div>
+
+                <!-- Large USB / Manual Input Box -->
+                <form id="barcode-scan-form" class="space-y-3">
+                  <label for="scanner-input" class="block text-xs font-bold uppercase tracking-wider text-navy-900">
+                    Scan or Type AWB / Order ID
+                  </label>
+                  <div class="relative flex items-center">
+                    <i data-lucide="scan-line" class="w-5 h-5 text-gold-600 absolute left-4"></i>
+                    <input type="text" id="scanner-input" autocomplete="off" placeholder="Focus here for USB scanner or enter AWB..."
+                      class="w-full pl-12 pr-28 py-4 bg-slate-50 border-2 border-navy-900 rounded-xl text-base sm:text-lg font-mono font-bold text-navy-900 focus:outline-none focus:ring-4 focus:ring-gold-500/30 transition" />
+                    <button type="submit" class="absolute right-2 px-4 py-2.5 bg-navy-900 hover:bg-navy-800 text-gold-400 font-bold text-xs rounded-lg transition">
+                      LOOKUP
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Camera Controls -->
+                <div class="mt-5 pt-5 border-t border-slate-100 space-y-4">
+                  <!-- Option A: Native Phone Camera Snap / Image Upload (Works on file://, HTTP & HTTPS + Full Label OCR) -->
+                  <div class="p-4 rounded-xl bg-navy-900/5 border border-navy-900/15 space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                      <div>
+                        <span class="text-xs font-bold text-navy-900 flex items-center gap-1.5">
+                          <i data-lucide="scan-text" class="w-4 h-4 text-gold-600"></i>
+                          Full Label Photo Scan (Recommended)
+                        </span>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                          Works on phone storage & HTTPS. Reads AWB, Order ID, SKU, Qty & Product in 1 photo!
+                        </p>
+                      </div>
+                      <label for="full-label-file-input"
+                        class="shrink-0 cursor-pointer px-3.5 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-gold-400 text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span>Snap / Upload Label</span>
+                      </label>
+                      <input type="file" id="full-label-file-input" accept="image/*" capture="environment" class="hidden" onchange="handleFullLabelCapture(event, 'dispatch')" />
+                    </div>
+                    <div id="ocr-progress-box" class="hidden p-2.5 rounded-lg bg-white border border-slate-200 text-xs font-medium text-navy-900 flex items-center gap-2">
+                      <span class="w-3.5 h-3.5 border-2 border-navy-900 border-t-transparent rounded-full animate-spin shrink-0"></span>
+                      <span id="ocr-progress-text">Reading barcode & label text...</span>
+                    </div>
+                  </div>
+
+                  <!-- Option B: Live Video Stream Scanner (Requires HTTPS / Vercel) -->
+                  <div>
+                    <div class="flex items-center justify-between mb-3">
+                      <span class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="video" class="w-4 h-4 text-navy-800"></i>
+                        Live Video Stream Reader (Requires HTTPS)
+                      </span>
+                      <div class="flex gap-2">
+                        <button type="button" id="start-camera-btn" onclick="startScannerCamera('dispatch')"
+                          class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                          <i data-lucide="video" class="w-3.5 h-3.5"></i> Live Stream
+                        </button>
+                        <button type="button" id="stop-camera-btn" onclick="stopScannerCamera('dispatch')"
+                          class="hidden px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                          <i data-lucide="video-off" class="w-3.5 h-3.5"></i> Stop
+                        </button>
+                      </div>
+                    </div>
+                    <div id="reader" class="w-full overflow-hidden rounded-xl bg-slate-900"></div>
+                    <p id="camera-status-msg" class="text-[11px] text-slate-400 mt-2">
+                      Note: Mobile browsers block live video on local <code class="text-slate-600">file://</code> files. Use <strong>Snap / Upload Label</strong> above or deploy to Vercel HTTPS for live streaming.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Dynamic Scan Result OR Pre-filled Unknown AWB Form -->
+            <div class="lg:col-span-6">
+              <!-- Idle State -->
+              <div id="scan-result-idle" class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm text-center flex flex-col items-center justify-center min-h-[340px]">
+                <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-4">
+                  <i data-lucide="qr-code" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-base font-bold text-navy-900">Ready for Shipping Label</h3>
+                <p class="text-xs text-slate-500 max-w-sm mt-1.5 leading-relaxed">
+                  Scan an AWB barcode. If the order exists in Supabase, you can confirm dispatch immediately. If the AWB is new, the quick order form will open pre-filled with the scanned AWB.
+                </p>
+              </div>
+
+              <!-- Found Order Card -->
+              <div id="scan-result-found" class="hidden bg-white rounded-2xl border-2 border-emerald-500 p-6 shadow-md space-y-5">
+                <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+                  <div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+                      <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Order Matched in Cloud
+                    </span>
+                    <h3 id="found-order-id" class="text-lg font-extrabold text-navy-900 mt-2">ORD-0000</h3>
+                    <p class="text-xs font-mono text-slate-500">AWB: <span id="found-awb" class="font-bold text-slate-800"></span></p>
+                  </div>
+                  <span id="found-marketplace-badge" class="px-3 py-1 rounded-lg bg-navy-900 text-gold-400 text-xs font-bold uppercase">Meesho</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/70 text-xs">
+                  <div>
+                    <p class="text-slate-400 font-medium">SKU Code</p>
+                    <p id="found-sku" class="font-bold text-navy-900 text-sm mt-0.5">-</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 font-medium">Curtain Bracket Pairs</p>
+                    <p id="found-pairs" class="font-extrabold text-navy-900 text-sm mt-0.5">0 Pairs</p>
+                  </div>
+                  <div class="col-span-2">
+                    <p class="text-slate-400 font-medium">Product Name</p>
+                    <p id="found-product" class="font-semibold text-slate-800 mt-0.5">-</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 font-medium">Order Date</p>
+                    <p id="found-order-date" class="font-medium text-slate-700 mt-0.5">-</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 font-medium">Current Status</p>
+                    <p id="found-current-status" class="font-bold text-amber-600 mt-0.5">Pending</p>
+                  </div>
+                </div>
+
+                <div id="found-already-dispatched-warning" class="hidden p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-medium flex items-start gap-2.5">
+                  <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                  <div>
+                    <p class="font-bold">Duplicate Dispatch Blocked</p>
+                    <p id="found-already-dispatched-text" class="mt-0.5">This order has already been dispatched.</p>
+                  </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-1">
+                  <button type="button" id="confirm-dispatch-btn" onclick="confirmScannedDispatch()"
+                    class="flex-1 py-3.5 px-5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition">
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                    <span>Confirm & Record Dispatch</span>
+                  </button>
+                  <button type="button" onclick="resetScannerState()"
+                    class="py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              <!-- Unknown AWB -> Auto Pre-Filled Quick Add & Dispatch Form -->
+              <div id="scan-result-unknown" class="hidden bg-white rounded-2xl border-2 border-gold-500 p-6 shadow-md space-y-4">
+                <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold-500/20 text-navy-900 text-xs font-bold">
+                      <i data-lucide="sparkles" class="w-3.5 h-3.5 text-gold-600"></i> New AWB Detected — Complete Order Details
+                    </span>
+                    <p class="text-xs text-slate-500 mt-1.5">
+                      Shipping barcode captured. Enter remaining order details to save and dispatch immediately.
+                    </p>
+                  </div>
+                  <button onclick="resetScannerState()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <form id="quick-unknown-order-form" class="space-y-3.5">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">AWB / Tracking ID (Scanned)</label>
+                      <input type="text" id="quick-awb" required readonly
+                        class="w-full px-3.5 py-2.5 bg-amber-50/70 border border-gold-500 rounded-xl text-sm font-mono font-bold text-navy-900" />
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Marketplace *</label>
+                      <select id="quick-marketplace" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-navy-800">
+                        <option value="Meesho">Meesho</option>
+                        <option value="Flipkart">Flipkart</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Order ID *</label>
+                      <input type="text" id="quick-order-id" required placeholder="e.g. 4029384712_1"
+                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-navy-800" />
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">SKU *</label>
+                      <input type="text" id="quick-sku" list="sku-datalist" required placeholder="Select or type SKU"
+                        oninput="autoFillProductFromSku(this.value, 'quick-product')"
+                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono uppercase focus:ring-2 focus:ring-navy-800" />
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Product Name *</label>
+                      <input type="text" id="quick-product" required placeholder="e.g. SS Curtain Bracket Gold"
+                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-800" />
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Number of Pairs *</label>
+                      <input type="number" id="quick-pairs" required min="1" step="1" value="1"
+                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-navy-800" />
+                    </div>
+                  </div>
+
+                  <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
+                    <button type="submit" id="quick-save-only-btn" data-dispatch="false"
+                      class="flex-1 py-3 px-4 bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs rounded-xl transition">
+                      Save Order Only
+                    </button>
+                    <button type="submit" id="quick-save-dispatch-btn" data-dispatch="true"
+                      class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
+                      <i data-lucide="truck" class="w-4 h-4"></i>
+                      <span>Save & Confirm Dispatch</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 3: ORDER ENTRY & ORDER BOOK
+             =============================================================== -->
+        <section id="page-orders" class="app-page hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Add Order Form -->
+            <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-fit">
+              <div class="border-b border-slate-100 pb-3.5 mb-4">
+                <h2 class="text-base font-bold text-navy-900">Add Marketplace Order</h2>
+                <p class="text-xs text-slate-500">Duplicate Order IDs and AWB numbers are automatically blocked.</p>
+              </div>
+
+              <form id="add-order-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Marketplace *</label>
+                    <select id="order-marketplace" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-navy-800">
+                      <option value="Meesho">Meesho</option>
+                      <option value="Flipkart">Flipkart</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Order Date *</label>
+                    <input type="date" id="order-date" required
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Order ID *</label>
+                  <input type="text" id="order-id" required placeholder="Enter unique Marketplace Order ID"
+                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-navy-800" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">AWB / Tracking ID *</label>
+                  <input type="text" id="order-awb" required placeholder="Scan or enter unique AWB number"
+                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-navy-800" />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">SKU *</label>
+                    <input type="text" id="order-sku" list="sku-datalist" required placeholder="e.g. PIE-CB-01"
+                      oninput="autoFillProductFromSku(this.value, 'order-product')"
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono uppercase focus:ring-2 focus:ring-navy-800" />
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Number of Pairs *</label>
+                    <input type="number" id="order-pairs" required min="1" step="1" value="1"
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Product Name *</label>
+                  <input type="text" id="order-product" required placeholder="e.g. Heavy Duty Antique Curtain Bracket"
+                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-800" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Notes (Optional)</label>
+                  <textarea id="order-notes" rows="2" placeholder="Packaging instructions, finish details..."
+                    class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-800"></textarea>
+                </div>
+
+                <div id="order-form-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium"></div>
+
+                <button type="submit" id="save-order-btn"
+                  class="w-full py-3 px-4 bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm rounded-xl shadow-md border border-gold-500/30 flex items-center justify-center gap-2 transition">
+                  <i data-lucide="save" class="w-4 h-4 text-gold-400"></i>
+                  <span>Save Order to Supabase</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Orders Directory -->
+            <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 class="text-base font-bold text-navy-900">All Cloud Orders</h2>
+                  <p class="text-xs text-slate-500">Live synchronized order records</p>
+                </div>
+                <div class="flex gap-2">
+                  <input type="text" id="orders-search" oninput="renderOrdersTable()" placeholder="Search Order ID, AWB, SKU..."
+                    class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs w-full sm:w-56 focus:ring-2 focus:ring-navy-800" />
+                  <select id="orders-filter-status" onchange="renderOrdersTable()" class="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium">
+                    <option value="ALL">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Dispatched">Dispatched</option>
+                    <option value="In Transit">In Transit</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="RTO">RTO</option>
+                    <option value="Returned">Returned</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50/70">
+                      <th class="py-3 px-3">Order & AWB</th>
+                      <th class="py-3 px-3">Platform</th>
+                      <th class="py-3 px-3">SKU / Product</th>
+                      <th class="py-3 px-3">Pairs</th>
+                      <th class="py-3 px-3">Status</th>
+                      <th class="py-3 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orders-table-body" class="divide-y divide-slate-100 text-xs">
+                    <tr><td colspan="6" class="py-10 text-center text-slate-400">Loading orders...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 4: DISPATCH & DELIVERY STATUS MANAGEMENT
+             =============================================================== -->
+        <section id="page-dispatches" class="app-page hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div>
+                <h2 class="text-base font-bold text-navy-900">Dispatch History & Delivery Tracking</h2>
+                <p class="text-xs text-slate-500">
+                  Update shipment status. Marking an order <span class="font-bold text-emerald-700">Delivered</span> automatically credits ₹2/pair to the Commission Ledger.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" id="dispatch-search" oninput="renderDispatchesTable()" placeholder="Search AWB, Order ID, SKU..."
+                  class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs w-full sm:w-64 focus:ring-2 focus:ring-navy-800" />
+                <select id="dispatch-status-filter" onchange="renderDispatchesTable()" class="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium">
+                  <option value="ALL">All Dispatches</option>
+                  <option value="Dispatched">Dispatched</option>
+                  <option value="In Transit">In Transit</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="RTO">RTO</option>
+                  <option value="Returned">Returned</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
+                    <th class="py-3 px-3">Order ID & AWB</th>
+                    <th class="py-3 px-3">Marketplace</th>
+                    <th class="py-3 px-3">SKU & Product</th>
+                    <th class="py-3 px-3">Pairs</th>
+                    <th class="py-3 px-3">Dispatched (IST)</th>
+                    <th class="py-3 px-3">Delivery Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dispatches-table-body" class="divide-y divide-slate-100 text-xs">
+                  <tr><td colspan="6" class="py-10 text-center text-slate-400">Loading dispatch records...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 5: RETURNS / RTO MANAGEMENT
+             =============================================================== -->
+        <section id="page-returns" class="app-page hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Return Scanner & Entry Form -->
+            <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4 h-fit">
+              <div class="border-b border-slate-100 pb-3.5">
+                <h2 class="text-base font-bold text-navy-900">Return / RTO Intake Scanner</h2>
+                <p class="text-xs text-slate-500">Original dispatch records are preserved. Post-delivery returns create a negative commission adjustment.</p>
+              </div>
+
+              <!-- Scan Return AWB -->
+              <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-navy-900">Scan Return AWB / Original AWB</label>
+                <div class="flex gap-2">
+                  <input type="text" id="return-scan-input" placeholder="Scan USB or type AWB..."
+                    class="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-mono font-bold focus:ring-2 focus:ring-navy-800" />
+                  <button type="button" onclick="lookupReturnBarcode()" class="px-3.5 py-2 bg-navy-900 text-gold-400 text-xs font-bold rounded-xl">
+                    Find
+                  </button>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                  <span class="text-[11px] text-slate-500">Phone Camera / Photo:</span>
+                  <div class="flex gap-2">
+                    <label for="return-label-file-input" class="cursor-pointer px-2.5 py-1 bg-navy-900 text-gold-400 text-[11px] font-semibold rounded-lg flex items-center gap-1">
+                      <i data-lucide="camera" class="w-3 h-3"></i> Snap Label
+                    </label>
+                    <input type="file" id="return-label-file-input" accept="image/*" capture="environment" class="hidden" onchange="handleFullLabelCapture(event, 'return')" />
+                    <button type="button" id="start-return-cam-btn" onclick="startScannerCamera('return')" class="px-2.5 py-1 bg-emerald-600 text-white text-[11px] font-semibold rounded-lg">
+                      Live Stream
+                    </button>
+                    <button type="button" id="stop-return-cam-btn" onclick="stopScannerCamera('return')" class="hidden px-2.5 py-1 bg-red-600 text-white text-[11px] font-semibold rounded-lg">
+                      Stop
+                    </button>
+                  </div>
+                </div>
+                <div id="return-ocr-status" class="hidden text-[11px] font-medium text-navy-900 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200">
+                  Scanning return label...
+                </div>
+                <div id="return-reader" class="w-full overflow-hidden rounded-xl bg-slate-900"></div>
+              </div>
+
+              <form id="return-entry-form" class="space-y-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Return AWB *</label>
+                    <input type="text" id="ret-awb" required placeholder="Return tracking ID"
+                      class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Original Order ID *</label>
+                    <input type="text" id="ret-order-id" required placeholder="Matched Order ID"
+                      class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">SKU *</label>
+                    <input type="text" id="ret-sku" list="sku-datalist" required placeholder="SKU"
+                      class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono uppercase focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Returned Pairs *</label>
+                    <input type="number" id="ret-pairs" required min="1" step="1" value="1"
+                      class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Return Date *</label>
+                    <input type="date" id="ret-date" required
+                      class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-800" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Return Type / Reason *</label>
+                    <select id="ret-reason" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium">
+                      <option value="RTO - Undelivered">RTO - Undelivered</option>
+                      <option value="Customer Return - Size/Fit">Customer Return - Fit</option>
+                      <option value="Customer Return - Defective">Customer Return - Defective</option>
+                      <option value="Customer Return - Other">Customer Return - Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Product Condition *</label>
+                    <select id="ret-condition" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium">
+                      <option value="Good / Resellable">Good / Resellable</option>
+                      <option value="Damaged / Bent">Damaged / Bent</option>
+                      <option value="Missing Screws/Parts">Missing Screws/Parts</option>
+                      <option value="Wrong Item Returned">Wrong Item Returned</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Restock Status *</label>
+                    <select id="ret-restock" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium">
+                      <option value="Restocked to Inventory">Restocked</option>
+                      <option value="Quarantined / Scrap">Quarantined / Scrap</option>
+                      <option value="Pending Inspection">Pending Inspection</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" id="save-return-btn"
+                  class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition">
+                  <i data-lucide="undo-2" class="w-4 h-4"></i>
+                  <span>Record Return & Adjust Ledger</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Returns Log Table -->
+            <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 class="text-base font-bold text-navy-900">Recorded Returns & RTO Log</h2>
+                  <p class="text-xs text-slate-500">Complete audit history of returned curtain bracket shipments</p>
+                </div>
+                <input type="text" id="returns-search" oninput="renderReturnsTable()" placeholder="Search Return AWB, Order ID..."
+                  class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs w-full sm:w-56" />
+              </div>
+
+              <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
+                      <th class="py-3 px-3">Return AWB / Order</th>
+                      <th class="py-3 px-3">SKU / Pairs</th>
+                      <th class="py-3 px-3">Reason</th>
+                      <th class="py-3 px-3">Condition & Restock</th>
+                      <th class="py-3 px-3">Return Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="returns-table-body" class="divide-y divide-slate-100 text-xs">
+                    <tr><td colspan="5" class="py-10 text-center text-slate-400">Loading returns...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 6: COMMISSION LEDGER
+             =============================================================== -->
+        <section id="page-commission" class="app-page hidden space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <p class="text-xs font-semibold uppercase text-slate-500">Total Earned (Credits)</p>
+              <p id="ledger-total-credits" class="text-2xl font-extrabold text-emerald-700 mt-1">₹0</p>
+              <p class="text-[11px] text-slate-400 mt-1">₹2 × Delivered Pairs</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <p class="text-xs font-semibold uppercase text-slate-500">Return Reversals (Debits)</p>
+              <p id="ledger-total-debits" class="text-2xl font-extrabold text-rose-600 mt-1">₹0</p>
+              <p class="text-[11px] text-slate-400 mt-1">Negative adjustments on returned deliveries</p>
+            </div>
+            <div class="bg-navy-900 p-5 rounded-2xl border-2 border-gold-500 shadow-md text-white">
+              <p class="text-xs font-bold uppercase text-gold-400">Net Payable Commission</p>
+              <p id="ledger-net-balance" class="text-2xl font-extrabold text-white mt-1">₹0</p>
+              <p class="text-[11px] text-gold-400/90 mt-1">Immutable ledger balance</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="mb-4">
+              <h2 class="text-base font-bold text-navy-900">Immutable Commission Ledger</h2>
+              <p class="text-xs text-slate-500">Original delivery credits are never deleted; returns post separate negative adjustment entries.</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
+                    <th class="py-3 px-3">Date & Time (IST)</th>
+                    <th class="py-3 px-3">Order ID</th>
+                    <th class="py-3 px-3">Transaction Type</th>
+                    <th class="py-3 px-3">Pairs</th>
+                    <th class="py-3 px-3">Rate</th>
+                    <th class="py-3 px-3 text-right">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="commission-table-body" class="divide-y divide-slate-100 text-xs">
+                  <tr><td colspan="6" class="py-10 text-center text-slate-400">Loading ledger...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 7: SKU MASTER MANAGEMENT
+             =============================================================== -->
+        <section id="page-skus" class="app-page hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Add / Edit SKU Form -->
+            <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-fit">
+              <h2 id="sku-form-title" class="text-base font-bold text-navy-900 mb-1">Add New Bracket SKU</h2>
+              <p class="text-xs text-slate-500 mb-4">Register curtain bracket SKUs for fast auto-fill and pair volume tracking.</p>
+
+              <form id="sku-form" class="space-y-4">
+                <input type="hidden" id="sku-edit-id" value="" />
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">SKU Code *</label>
+                  <input type="text" id="sku-code-input" required placeholder="e.g. PIE-GOLD-FINIAL-01"
+                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono uppercase focus:ring-2 focus:ring-navy-800" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Product Name *</label>
+                  <input type="text" id="sku-name-input" required placeholder="e.g. Royal Gold Curtain Bracket (1 Pair)"
+                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-navy-800" />
+                </div>
+                <div class="flex gap-2">
+                  <button type="submit" id="save-sku-btn" class="flex-1 py-2.5 px-4 bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs rounded-xl transition">
+                    Save SKU
+                  </button>
+                  <button type="button" id="cancel-sku-edit-btn" onclick="resetSkuForm()" class="hidden py-2.5 px-3 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- SKU Performance & History Table -->
+            <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 class="text-base font-bold text-navy-900">SKU Catalog & Pair Volume</h2>
+                  <p class="text-xs text-slate-500">Live calculation of ordered, dispatched, delivered & returned pairs by SKU</p>
+                </div>
+                <input type="text" id="sku-search-input" oninput="renderSkusTable()" placeholder="Search SKU or product..."
+                  class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs w-full sm:w-56" />
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
+                      <th class="py-3 px-3">SKU</th>
+                      <th class="py-3 px-3">Product Name</th>
+                      <th class="py-3 px-3 text-center">Dispatched Pairs</th>
+                      <th class="py-3 px-3 text-center">Delivered Pairs</th>
+                      <th class="py-3 px-3 text-center">Returned Pairs</th>
+                      <th class="py-3 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="skus-table-body" class="divide-y divide-slate-100 text-xs">
+                    <tr><td colspan="6" class="py-10 text-center text-slate-400">Loading SKUs...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             PAGE 8: SYSTEM AUDIT LOGS
+             =============================================================== -->
+        <section id="page-audit" class="app-page hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="mb-4">
+              <h2 class="text-base font-bold text-navy-900">Security & Operations Audit Trail</h2>
+              <p class="text-xs text-slate-500">Chronological log of scans, dispatches, returns, SKU edits and status changes (Asia/Kolkata).</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
+                    <th class="py-3 px-3">Timestamp (IST)</th>
+                    <th class="py-3 px-3">Action</th>
+                    <th class="py-3 px-3">Entity</th>
+                    <th class="py-3 px-3">Details</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-table-body" class="divide-y divide-slate-100 text-xs">
+                  <tr><td colspan="4" class="py-10 text-center text-slate-400">Loading audit logs...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-navy-900 border-t border-navy-800 z-40 grid grid-cols-5 py-1.5 px-1 shadow-lg">
+      <button data-nav="dashboard" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-medium text-slate-400">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5"></i>
+        <span>Home</span>
+      </button>
+      <button data-nav="scanner" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-medium text-slate-400">
+        <i data-lucide="scan-barcode" class="w-5 h-5 mb-0.5"></i>
+        <span>Scan</span>
+      </button>
+      <button data-nav="orders" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-medium text-slate-400">
+        <i data-lucide="package-plus" class="w-5 h-5 mb-0.5"></i>
+        <span>Orders</span>
+      </button>
+      <button data-nav="dispatches" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-medium text-slate-400">
+        <i data-lucide="truck" class="w-5 h-5 mb-0.5"></i>
+        <span>Dispatch</span>
+      </button>
+      <button data-nav="returns" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-medium text-slate-400">
+        <i data-lucide="undo-2" class="w-5 h-5 mb-0.5"></i>
+        <span>Returns</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- SKU HISTORY MODAL -->
+  <div id="sku-history-modal" class="hidden fixed inset-0 z-50 bg-navy-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div>
+          <h3 id="sku-modal-title" class="text-base font-bold text-navy-900">SKU Movement History</h3>
+          <p id="sku-modal-subtitle" class="text-xs text-slate-500">Orders and returns associated with this SKU</p>
+        </div>
+        <button onclick="closeSkuHistoryModal()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="overflow-y-auto flex-1">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-[11px] font-semibold uppercase text-slate-500 bg-slate-50">
+              <th class="py-2.5 px-3">Date (IST)</th>
+              <th class="py-2.5 px-3">Order ID</th>
+              <th class="py-2.5 px-3">Marketplace</th>
+              <th class="py-2.5 px-3">Pairs</th>
+              <th class="py-2.5 px-3">Status</th>
+            </tr>
+          </thead>
+          <tbody id="sku-history-body" class="divide-y divide-slate-100 text-xs"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datalist for SKU Auto-Complete -->
+  <datalist id="sku-datalist"></datalist>
+
+  <!-- =====================================================================
+       APPLICATION JAVASCRIPT (SUPABASE + SCANNER + BUSINESS LOGIC)
+       ===================================================================== -->
+  <script>
+    /**
+     * 1. SUPABASE CONFIGURATION & STATE
+     */
+    const SUPABASE_URL = 'https://zovmnjnyyevwiakqzzoq.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_x0P2nly4eQbsaF5IZaoWew_9HPvqc4A';
+    const COMMISSION_RATE_INR = 2;
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const state = {
+      user: null,
+      profile: null,
+      orders: [],
+      dispatches: [],
+      returns: [],
+      products: [],
+      ledger: [],
+      auditLogs: [],
+      matchedScanOrder: null,
+      html5QrCode: null,
+      activeScannerType: null,
+      realtimeChannel: null
+    };
+
+    /**
+     * 2. UTILITIES (INDIA TIMEZONE, ESCAPING, TOASTS)
+     */
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function formatIST(dateInput, includeTime = true) {
+      if (!dateInput) return '-';
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return String(dateInput);
+      const options = {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      };
+      if (includeTime) {
+        options.hour = '2-digit';
+        options.minute = '2-digit';
+        options.hour12 = true;
+      }
+      return new Intl.DateTimeFormat('en-IN', options).format(d);
+    }
+
+    function getTodayISTDateInput() {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(new Date());
+      const y = parts.find(p => p.type === 'year').value;
+      const m = parts.find(p => p.type === 'month').value;
+      const d = parts.find(p => p.type === 'day').value;
+      return `${y}-${m}-${d}`;
+    }
+
+    function startISTClock() {
+      const updateClock = () => {
+        const nowStr = new Intl.DateTimeFormat('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }).format(new Date()) + ' IST';
+        const deskEl = document.getElementById('desktop-ist-clock');
+        const mobEl = document.getElementById('mobile-ist-clock');
+        if (deskEl) deskEl.textContent = nowStr;
+        if (mobEl) mobEl.textContent = nowStr;
+      };
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const colors = {
+        success: 'bg-emerald-900 border-emerald-500 text-white',
+        error: 'bg-red-900 border-red-500 text-white',
+        warning: 'bg-amber-900 border-amber-400 text-white',
+        info: 'bg-navy-900 border-gold-500 text-white'
+      };
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold flex items-center justify-between gap-3 transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4200);
+    }
+
+    /**
+     * 3. REAL SUPABASE CONNECTION VERIFICATION
+     */
+    async function verifySupabaseConnection() {
+      const dot = document.getElementById('auth-db-dot');
+      const txt = document.getElementById('auth-db-text');
+      try {
+        const { error } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true });
+        if (error && error.code !== 'PGRST116' && error.code !== '42501') {
+          throw error;
+        }
+        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+        if (txt) {
+          txt.textContent = 'Connected (PostgreSQL)';
+          txt.className = 'font-semibold text-emerald-700';
+        }
+        return true;
+      } catch (err) {
+        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+        if (txt) {
+          txt.textContent = 'Connection Failed';
+          txt.className = 'font-semibold text-red-600';
+        }
+        return false;
+      }
+    }
+
+    /**
+     * 4. AUTHENTICATION & AUTHORIZED OWNER GATEKEEPER
+     */
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errBox = document.getElementById('login-error');
+      const btn = document.getElementById('login-submit-btn');
+
+      errBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Verifying Owner Credentials...</span>';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await initializeAuthenticatedSession(data.user);
+      } catch (err) {
+        errBox.textContent = err.message || 'Authentication failed. Check email and password.';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In to Order Desk</span><i data-lucide="arrow-right" class="w-4 h-4 text-gold-400"></i>';
+        lucide.createIcons();
+      }
+    });
+
+    async function initializeAuthenticatedSession(user) {
+      const errBox = document.getElementById('login-error');
+      const { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !profile || !profile.is_authorized) {
+        await supabaseClient.auth.signOut();
+        errBox.textContent = 'Access Denied: This account is not authorized as the PRO INDIA ENTERPRISES owner.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      state.user = user;
+      state.profile = profile;
+
+      document.getElementById('user-display-name').textContent = profile.full_name || 'PRO INDIA OWNER';
+      document.getElementById('user-display-email').textContent = user.email;
+      document.getElementById('order-date').value = getTodayISTDateInput();
+      document.getElementById('ret-date').value = getTodayISTDateInput();
+
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('hidden');
+
+      navigateTo('dashboard');
+      await syncAllData(false);
+      setupRealtimeSync();
+      await writeAuditLog('OWNER_LOGIN', 'auth', user.id, `Owner signed in (${user.email})`);
+    }
+
+    async function handleLogout() {
+      await stopScannerCamera('dispatch');
+      await stopScannerCamera('return');
+      if (state.realtimeChannel) {
+        supabaseClient.removeChannel(state.realtimeChannel);
+      }
+      await supabaseClient.auth.signOut();
+      state.user = null;
+      state.profile = null;
+      document.getElementById('app-shell').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+      showToast('Signed out securely.', 'info');
+    }
+
+    /**
+     * 5. FULL-LABEL SMART OCR + BARCODE CAPTURE
+     */
+    async function handleFullLabelCapture(event, mode = 'dispatch') {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const progressBox = document.getElementById('ocr-progress-box');
+      const progressText = document.getElementById('ocr-progress-text');
+      const returnStatus = document.getElementById('return-ocr-status');
+
+      if (mode === 'dispatch' && progressBox) {
+        progressBox.classList.remove('hidden');
+        progressText.textContent = 'Scanning barcode & extracting label details...';
+      } else if (mode === 'return' && returnStatus) {
+        returnStatus.classList.remove('hidden');
+        returnStatus.textContent = 'Reading return label barcode & text...';
+      }
+
+      try {
+        let decodedBarcode = '';
+        try {
+          let tempDiv = document.getElementById('hidden-file-qr-div');
+          if (!tempDiv) {
+            tempDiv = document.createElement('div');
+            tempDiv.id = 'hidden-file-qr-div';
+            tempDiv.className = 'hidden';
+            document.body.appendChild(tempDiv);
+          }
+          const fileQr = new Html5Qrcode('hidden-file-qr-div');
+          decodedBarcode = await fileQr.scanFile(file, false);
+          fileQr.clear();
+        } catch (qrErr) {
+          decodedBarcode = '';
+        }
+
+        if (progressText) progressText.textContent = 'Reading AWB, Order No, SKU, Qty & Product Name...';
+        const ocrResult = await Tesseract.recognize(file, 'eng');
+        const rawText = (ocrResult && ocrResult.data && ocrResult.data.text) ? ocrResult.data.text : '';
+        const parsed = parseShippingLabelText(rawText, decodedBarcode);
+
+        playBeep();
+
+        if (mode === 'return') {
+          if (parsed.awb) {
+            document.getElementById('return-scan-input').value = parsed.awb;
+            document.getElementById('ret-awb').value = parsed.awb;
+          }
+          if (parsed.orderId) document.getElementById('ret-order-id').value = parsed.orderId;
+          if (parsed.sku) document.getElementById('ret-sku').value = parsed.sku;
+          if (parsed.pairs) document.getElementById('ret-pairs').value = parsed.pairs;
+          if (parsed.awb) lookupReturnBarcode();
+          showToast('Return label details extracted!', 'success');
+        } else {
+          const lookupCode = parsed.awb || parsed.orderId;
+          if (!lookupCode) {
+            showToast('Could not clearly read AWB/Order ID from photo. Retake in bright light or enter manually.', 'warning');
+          } else {
+            document.getElementById('scanner-input').value = lookupCode;
+            await processScannedBarcode(lookupCode);
+
+            if (!state.matchedScanOrder) {
+              if (parsed.marketplace) document.getElementById('quick-marketplace').value = parsed.marketplace;
+              if (parsed.orderId) document.getElementById('quick-order-id').value = parsed.orderId;
+              if (parsed.sku) {
+                document.getElementById('quick-sku').value = parsed.sku;
+                autoFillProductFromSku(parsed.sku, 'quick-product');
+              }
+              if (parsed.productName && !document.getElementById('quick-product').value.trim()) {
+                document.getElementById('quick-product').value = parsed.productName;
+              }
+              if (parsed.pairs) document.getElementById('quick-pairs').value = parsed.pairs;
+              showToast('Full label scanned! Verify extracted details & confirm dispatch.', 'success');
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Full label scan error:', err);
+        showToast('Failed to read label image. Ensure clear lighting and try again.', 'error');
+      } finally {
+        if (progressBox) progressBox.classList.add('hidden');
+        if (returnStatus) returnStatus.classList.add('hidden');
+        event.target.value = '';
+      }
+    }
+
+    function parseShippingLabelText(text, barcodeHint = '') {
+      const cleanLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const upperText = text.toUpperCase();
+
+      let marketplace = 'Meesho';
+      if (upperText.includes('FLIPKART') || upperText.includes('EKART') || upperText.includes('FMPP') || upperText.includes('FMPC')) {
+        marketplace = 'Flipkart';
+      }
+
+      let awb = (barcodeHint || '').trim();
+      if (!awb) {
+        const awbPatterns = [
+          /\b(SF\d{8,14}[A-Z]{2,4})\b/i,
+          /\b(FMP[PC]\d{8,14})\b/i,
+          /\b(AWB[:\s#-]*([A-Z0-9]{10,20}))\b/i,
+          /\b([A-Z]{2}\d{9,14}[A-Z]{0,4})\b/,
+          /\b(\d{12,16})\b/
+        ];
+        for (const pat of awbPatterns) {
+          const m = text.match(pat);
+          if (m) {
+            awb = (m[2] || m[1]).trim().toUpperCase();
+            break;
+          }
+        }
+      }
+
+      let orderId = '';
+      const orderPatterns = [
+        /Order\s*No\.?[:\s#-]*([A-Z0-9_-]{8,30})/i,
+        /Purchase\s*Order\s*No\.?[:\s#-]*([A-Z0-9_-]{8,30})/i,
+        /\b(\d{14,22}_\d+)\b/,
+        /\b(OD\d{14,22})\b/i
+      ];
+      for (const pat of orderPatterns) {
+        const m = text.match(pat);
+        if (m && m[1]) {
+          orderId = m[1].trim();
+          break;
+        }
+      }
+
+      let sku = '';
+      const skuLineIdx = cleanLines.findIndex(l => /^SKU\b/i.test(l) || /\bSKU\s*Size\b/i.test(l));
+      if (skuLineIdx !== -1 && cleanLines[skuLineIdx + 1]) {
+        const nextLineTokens = cleanLines[skuLineIdx + 1].split(/\s+/);
+        if (nextLineTokens[0] && nextLineTokens[0].length >= 3) {
+          sku = nextLineTokens[0].replace(/[^A-Z0-9_-]/gi, '').toUpperCase();
+        }
+      }
+      if (!sku) {
+        const skuMatch = text.match(/\b([A-Z]{2,8}-[A-Z0-9]{1,8}-[A-Z0-9]{1,8})\b/);
+        if (skuMatch) sku = skuMatch[1].toUpperCase();
+      }
+
+      let pairs = 1;
+      const qtyMatch = text.match(/\bQty[:\s]*(\d{1,3})\b/i) || text.match(/Free\s*Size\s+(\d{1,3})\b/i);
+      if (qtyMatch && parseInt(qtyMatch[1], 10) > 0) {
+        pairs = parseInt(qtyMatch[1], 10);
+      }
+
+      let productName = '';
+      const descIdx = cleanLines.findIndex(l => /Description/i.test(l) && /HSN|Qty|Gross/i.test(l));
+      if (descIdx !== -1) {
+        const descSnippet = cleanLines.slice(descIdx + 1, descIdx + 6)
+          .join(' ')
+          .replace(/PRO INDIA ENTERPRISES/gi, '')
+          .replace(/HSN.*$/i, '')
+          .replace(/Rs\.?\s*\d+.*$/i, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (descSnippet.length > 4) {
+          productName = descSnippet.slice(0, 90);
+        }
+      }
+
+      return { marketplace, awb, orderId, sku, pairs, productName };
+    }
+
+    /**
+     * 6. CLOUD SYNCHRONIZATION & REAL-TIME SUBSCRIPTIONS
+     */
+    async function syncAllData(showNotification = false) {
+      if (!state.user) return;
+      const syncDot = document.getElementById('sidebar-sync-dot');
+      const syncLabel = document.getElementById('sidebar-sync-label');
+      if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+      if (syncLabel) syncLabel.textContent = 'Syncing...';
+
+      try {
+        const [ordersRes, dispatchesRes, returnsRes, productsRes, ledgerRes, auditRes] = await Promise.all([
+          supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
+          supabaseClient.from('dispatches').select('*').order('dispatched_at', { ascending: false }),
+          supabaseClient.from('returns').select('*').order('created_at', { ascending: false }),
+          supabaseClient.from('products').select('*').order('sku', { ascending: true }),
+          supabaseClient.from('commission_ledger').select('*').order('created_at', { ascending: false }),
+          supabaseClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)
+        ]);
+
+        if (ordersRes.error) throw ordersRes.error;
+        if (dispatchesRes.error) throw dispatchesRes.error;
+        if (returnsRes.error) throw returnsRes.error;
+        if (productsRes.error) throw productsRes.error;
+        if (ledgerRes.error) throw ledgerRes.error;
+
+        state.orders = ordersRes.data || [];
+        state.dispatches = dispatchesRes.data || [];
+        state.returns = returnsRes.data || [];
+        state.products = productsRes.data || [];
+        state.ledger = ledgerRes.data || [];
+        state.auditLogs = auditRes.data || [];
+
+        refreshAllViews();
+
+        if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        if (syncLabel) syncLabel.textContent = 'Live Cloud Sync';
+        document.getElementById('network-banner').classList.add('hidden');
+
+        if (showNotification) showToast('Synchronized with Supabase PostgreSQL.', 'success');
+      } catch (err) {
+        console.error('Sync Error:', err);
+        if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-red-500';
+        if (syncLabel) syncLabel.textContent = 'Sync Error';
+        const banner = document.getElementById('network-banner');
+        document.getElementById('network-banner-text').textContent = `Database sync error: ${err.message}`;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    function setupRealtimeSync() {
+      if (state.realtimeChannel) {
+        supabaseClient.removeChannel(state.realtimeChannel);
+      }
+      state.realtimeChannel = supabaseClient
+        .channel('pro-india-live-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => syncAllData(false))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'dispatches' }, () => syncAllData(false))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'returns' }, () => syncAllData(false))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => syncAllData(false))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'commission_ledger' }, () => syncAllData(false))
+        .subscribe();
+    }
+
+    async function writeAuditLog(action, entityType, entityId, details) {
+      if (!state.user) return;
+      await supabaseClient.from('audit_logs').insert([{
+        user_id: state.user.id,
+        action,
+        entity_type: entityType,
+        entity_id: String(entityId),
+        details
+      }]);
+    }
+
+    /**
+     * 7. NAVIGATION & VIEW RENDERING
+     */
+    const PAGE_META = {
+      dashboard: ['Executive Dashboard', 'Live manufacturing dispatch, returns & ₹2/pair commission overview'],
+      scanner: ['Dispatch Barcode Scanner', 'Scan shipping labels via Windows USB scanner or Android camera'],
+      orders: ['Order Entry & Order Book', 'Add Meesho & Flipkart orders with duplicate Order ID / AWB protection'],
+      dispatches: ['Dispatch & Delivery Tracking', 'Manage shipment statuses and trigger ₹2/pair delivery commissions'],
+      returns: ['Returns & RTO Management', 'Scan return parcels, log condition/restock & post commission adjustments'],
+      commission: ['Commission Ledger', 'Immutable ₹2/pair earnings and post-delivery return adjustments'],
+      skus: ['SKU Master Management', 'Track curtain bracket SKUs and cumulative pair volumes'],
+      audit: ['System Audit Logs', 'Immutable operational history in Asia/Kolkata (IST)']
+    };
+
+    function navigateTo(pageId) {
+      // Stop active cameras when leaving scanner tabs
+      if (pageId !== 'scanner') stopScannerCamera('dispatch');
+      if (pageId !== 'returns') stopScannerCamera('return');
+
+      document.querySelectorAll('.app-page').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById(`page-${pageId}`);
+      if (target) target.classList.remove('hidden');
+
+      // Update Desktop Sidebar Active Styles
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const isActive = btn.dataset.nav === pageId;
+        btn.className = isActive
+          ? 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-navy-800 text-gold-400 border border-gold-500/30 shadow-xs transition'
+          : 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800/60 hover:text-white transition';
+      });
+
+      // Update Mobile Bottom Nav Active Styles
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        const isActive = btn.dataset.nav === pageId;
+        btn.className = isActive
+          ? 'mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-bold text-gold-400'
+          : 'mobile-nav-btn flex flex-col items-center justify-center py-1 text-[10px] font-medium text-slate-400';
+      });
+
+      const meta = PAGE_META[pageId] || ['PRO INDIA ORDER DESK', ''];
+      document.getElementById('page-title').textContent = meta[0];
+      document.getElementById('page-subtitle').textContent = meta[1];
+
+      // Auto-focus USB barcode input when entering scanner page on desktop
+      if (pageId === 'scanner') {
+        setTimeout(() => {
+          const inp = document.getElementById('scanner-input');
+          if (inp && window.innerWidth >= 768) inp.focus();
+        }, 100);
+      }
+
+      lucide.createIcons();
+    }
+
+    document.querySelectorAll('[data-nav]').forEach(btn => {
+      btn.addEventListener('click', () => navigateTo(btn.dataset.nav));
+    });
+
+    function refreshAllViews() {
+      renderDashboardKPIs();
+      renderSkuDatalist();
+      renderOrdersTable();
+      renderDispatchesTable();
+      renderReturnsTable();
+      renderCommissionLedger();
+      renderSkusTable();
+      renderAuditLogs();
+      lucide.createIcons();
+    }
+
+    function getStatusBadge(status) {
+      const map = {
+        'Pending': 'bg-amber-100 text-amber-800 border-amber-200',
+        'Dispatched': 'bg-blue-100 text-blue-800 border-blue-200',
+        'In Transit': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        'Delivered': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        'RTO': 'bg-orange-100 text-orange-800 border-orange-200',
+        'Returned': 'bg-red-100 text-red-800 border-red-200'
+      };
+      const cls = map[status] || 'bg-slate-100 text-slate-700 border-slate-200';
+      return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${cls}">${escapeHtml(status)}</span>`;
+    }
+
+    /**
+     * 8. DASHBOARD CALCULATIONS (100% REAL DATABASE DATA)
+     */
+    function renderDashboardKPIs() {
+      const totalOrders = state.orders.length;
+      const dispatchedOrders = state.orders.filter(o => ['Dispatched', 'In Transit', 'Delivered', 'RTO', 'Returned'].includes(o.status)).length;
+      const deliveredOrders = state.orders.filter(o => o.status === 'Delivered').length;
+      const pendingOrders = state.orders.filter(o => o.status === 'Pending').length;
+      const returnRtoOrders = state.orders.filter(o => ['RTO', 'Returned'].includes(o.status)).length;
+
+      // Total pairs dispatched (from all dispatch records)
+      const totalPairsDispatched = state.dispatches.reduce((sum, d) => sum + Number(d.pair_quantity || 0), 0);
+
+      // Net delivered pairs & commission from immutable ledger
+      let grossCommission = 0;
+      let commissionAdjustments = 0;
+      let netDeliveredPairs = 0;
+
+      state.ledger.forEach(entry => {
+        const amt = Number(entry.amount || 0);
+        const pairs = Number(entry.pairs || 0);
+        if (entry.entry_type === 'DELIVERY_CREDIT') {
+          grossCommission += amt;
+          netDeliveredPairs += pairs;
+        } else if (entry.entry_type === 'RETURN_ADJUSTMENT') {
+          commissionAdjustments += amt; // negative value
+          netDeliveredPairs -= Math.abs(pairs);
+        }
+      });
+
+      const netPayable = grossCommission + commissionAdjustments;
+
+      document.getElementById('kpi-total-orders').textContent = totalOrders.toLocaleString('en-IN');
+      document.getElementById('kpi-dispatched-orders').textContent = dispatchedOrders.toLocaleString('en-IN');
+      document.getElementById('kpi-delivered-orders').textContent = deliveredOrders.toLocaleString('en-IN');
+      document.getElementById('kpi-pending-orders').textContent = pendingOrders.toLocaleString('en-IN');
+      document.getElementById('kpi-return-orders').textContent = returnRtoOrders.toLocaleString('en-IN');
+      document.getElementById('kpi-pairs-dispatched').textContent = totalPairsDispatched.toLocaleString('en-IN');
+      document.getElementById('kpi-delivered-pairs').textContent = Math.max(0, netDeliveredPairs).toLocaleString('en-IN');
+      document.getElementById('kpi-gross-commission').textContent = `₹${grossCommission.toLocaleString('en-IN')}`;
+      document.getElementById('kpi-commission-adjustments').textContent = `₹${commissionAdjustments.toLocaleString('en-IN')}`;
+      document.getElementById('kpi-net-commission').textContent = `₹${netPayable.toLocaleString('en-IN')}`;
+
+      // Recent Dispatches Table on Dashboard
+      const recentBody = document.getElementById('dashboard-recent-dispatches');
+      if (state.dispatches.length === 0) {
+        recentBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">No dispatches recorded yet. Use the Dispatch Scanner to ship your first order.</td></tr>`;
+        return;
+      }
+
+      recentBody.innerHTML = state.dispatches.slice(0, 6).map(d => {
+        const parentOrder = state.orders.find(o => o.id === d.order_uuid) || {};
+        const currentStatus = parentOrder.status || d.dispatch_status || 'Dispatched';
+        return `
+          <tr class="hover:bg-slate-50/80">
+            <td class="py-2.5 px-3">
+              <div class="font-mono font-bold text-navy-900">${escapeHtml(d.awb)}</div>
+              <div class="text-[11px] text-slate-500">${escapeHtml(d.order_id)}</div>
+            </td>
+            <td class="py-2.5 px-3 font-medium">${escapeHtml(d.marketplace)}</td>
+            <td class="py-2.5 px-3">
+              <span class="font-mono font-semibold">${escapeHtml(d.sku)}</span>
+              <span class="text-slate-500"> (${d.pair_quantity} pairs)</span>
+            </td>
+            <td class="py-2.5 px-3">${getStatusBadge(currentStatus)}</td>
+            <td class="py-2.5 px-3 text-slate-500">${formatIST(d.dispatched_at)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * 9. ORDER ENTRY & DUPLICATE PROTECTION
+     */
+    function autoFillProductFromSku(skuVal, targetInputId) {
+      const cleanSku = skuVal.trim().toUpperCase();
+      const matched = state.products.find(p => p.sku.toUpperCase() === cleanSku);
+      if (matched) {
+        const target = document.getElementById(targetInputId);
+        if (target && !target.value.trim()) {
+          target.value = matched.product_name;
+        }
+      }
+    }
+
+    async function ensureSkuExists(sku, productName) {
+      const cleanSku = sku.trim().toUpperCase();
+      const existing = state.products.find(p => p.sku.toUpperCase() === cleanSku);
+      if (!existing) {
+        await supabaseClient.from('products').insert([{
+          sku: cleanSku,
+          product_name: productName.trim(),
+          created_by: state.user.id
+        }]);
+      }
+    }
+
+    document.getElementById('add-order-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById('order-form-error');
+      const btn = document.getElementById('save-order-btn');
+      errBox.classList.add('hidden');
+
+      const marketplace = document.getElementById('order-marketplace').value;
+      const orderDate = document.getElementById('order-date').value;
+      const orderId = document.getElementById('order-id').value.trim();
+      const awb = document.getElementById('order-awb').value.trim();
+      const sku = document.getElementById('order-sku').value.trim().toUpperCase();
+      const pairs = parseInt(document.getElementById('order-pairs').value, 10);
+      const productName = document.getElementById('order-product').value.trim();
+      const notes = document.getElementById('order-notes').value.trim();
+
+      // Validation
+      if (!orderId || !awb || !sku || !productName || isNaN(pairs) || pairs < 1) {
+        errBox.textContent = 'Please complete all required fields and enter at least 1 pair.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      // Duplicate Check in Memory + DB Constraint
+      const dupOrder = state.orders.find(o => o.order_id.toLowerCase() === orderId.toLowerCase());
+      if (dupOrder) {
+        errBox.textContent = `Duplicate Blocked: Order ID "${orderId}" already exists in the system.`;
+        errBox.classList.remove('hidden');
+        return;
+      }
+      const dupAwb = state.orders.find(o => o.awb.toLowerCase() === awb.toLowerCase());
+      if (dupAwb) {
+        errBox.textContent = `Duplicate Blocked: AWB "${awb}" is already assigned to Order "${dupAwb.order_id}".`;
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Saving to Cloud...</span>';
+
+      try {
+        await ensureSkuExists(sku, productName);
+
+        const { data, error } = await supabaseClient.from('orders').insert([{
+          marketplace,
+          order_id: orderId,
+          awb,
+          sku,
+          product_name: productName,
+          pair_quantity: pairs,
+          order_date: orderDate,
+          notes: notes || null,
+          status: 'Pending',
+          created_by: state.user.id
+        }]).select().single();
+
+        if (error) {
+          if (error.code === '23505') {
+            throw new Error('Duplicate Order ID or AWB detected by database constraint.');
+          }
+          throw error;
+        }
+
+        await writeAuditLog('ORDER_CREATED', 'orders', data.id, `Created ${marketplace} order ${orderId} (AWB: ${awb}, ${pairs} pairs)`);
+        document.getElementById('add-order-form').reset();
+        document.getElementById('order-date').value = getTodayISTDateInput();
+        document.getElementById('order-pairs').value = 1;
+
+        await syncAllData(false);
+        showToast(`Order ${orderId} saved to Supabase.`, 'success');
+      } catch (err) {
+        errBox.textContent = err.message;
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save" class="w-4 h-4 text-gold-400"></i><span>Save Order to Supabase</span>';
+        lucide.createIcons();
+      }
+    });
+
+    function renderOrdersTable() {
+      const tbody = document.getElementById('orders-table-body');
+      const query = (document.getElementById('orders-search').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('orders-filter-status').value;
+
+      const filtered = state.orders.filter(o => {
+        const matchesStatus = statusFilter === 'ALL' || o.status === statusFilter;
+        const matchesQuery = !query ||
+          o.order_id.toLowerCase().includes(query) ||
+          o.awb.toLowerCase().includes(query) ||
+          o.sku.toLowerCase().includes(query) ||
+          o.product_name.toLowerCase().includes(query);
+        return matchesStatus && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">No matching orders found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(o => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-3">
+            <div class="font-mono font-bold text-navy-900">${escapeHtml(o.order_id)}</div>
+            <div class="text-[11px] font-mono text-slate-500">AWB: ${escapeHtml(o.awb)}</div>
+          </td>
+          <td class="py-3 px-3 font-semibold text-slate-700">${escapeHtml(o.marketplace)}</td>
+          <td class="py-3 px-3">
+            <div class="font-mono font-bold text-navy-800">${escapeHtml(o.sku)}</div>
+            <div class="text-[11px] text-slate-500 truncate max-w-[180px]">${escapeHtml(o.product_name)}</div>
+          </td>
+          <td class="py-3 px-3 font-bold text-navy-900">${o.pair_quantity}</td>
+          <td class="py-3 px-3">${getStatusBadge(o.status)}</td>
+          <td class="py-3 px-3 text-right">
+            ${o.status === 'Pending'
+              ? `<button onclick="quickDispatchFromTable('${o.awb}')" class="px-2.5 py-1.5 bg-navy-900 hover:bg-navy-800 text-gold-400 rounded-lg text-[11px] font-bold">Dispatch →</button>`
+              : `<span class="text-[11px] text-slate-400">${formatIST(o.order_date, false)}</span>`
+            }
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function quickDispatchFromTable(awb) {
+      navigateTo('scanner');
+      document.getElementById('scanner-input').value = awb;
+      processScannedBarcode(awb);
+    }
+
+    /**
+     * 10. BARCODE SCANNER (CAMERA + USB + UNKNOWN AWB WORKFLOW)
+     */
+    document.getElementById('barcode-scan-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = document.getElementById('scanner-input').value.trim();
+      if (!val) return;
+      processScannedBarcode(val);
+    });
+
+    async function processScannedBarcode(rawBarcode) {
+      const code = rawBarcode.trim();
+      if (!code) return;
+
+      // Search database by AWB or Order ID (case-insensitive)
+      const matched = state.orders.find(o =>
+        o.awb.toLowerCase() === code.toLowerCase() ||
+        o.order_id.toLowerCase() === code.toLowerCase()
+      );
+
+      document.getElementById('scan-result-idle').classList.add('hidden');
+
+      if (matched) {
+        // ORDER FOUND
+        state.matchedScanOrder = matched;
+        document.getElementById('scan-result-unknown').classList.add('hidden');
+        document.getElementById('scan-result-found').classList.remove('hidden');
+
+        document.getElementById('found-order-id').textContent = matched.order_id;
+        document.getElementById('found-awb').textContent = matched.awb;
+        document.getElementById('found-marketplace-badge').textContent = matched.marketplace;
+        document.getElementById('found-sku').textContent = matched.sku;
+        document.getElementById('found-pairs').textContent = `${matched.pair_quantity} Pair(s)`;
+        document.getElementById('found-product').textContent = matched.product_name;
+        document.getElementById('found-order-date').textContent = formatIST(matched.order_date, false);
+        document.getElementById('found-current-status').textContent = matched.status;
+
+        const existingDispatch = state.dispatches.find(d => d.order_uuid === matched.id || d.awb.toLowerCase() === matched.awb.toLowerCase());
+        const warnBox = document.getElementById('found-already-dispatched-warning');
+        const confirmBtn = document.getElementById('confirm-dispatch-btn');
+
+        if (existingDispatch || matched.status !== 'Pending') {
+          warnBox.classList.remove('hidden');
+          document.getElementById('found-already-dispatched-text').textContent =
+            existingDispatch
+              ? `Dispatched on ${formatIST(existingDispatch.dispatched_at)}. Duplicate dispatch prevented.`
+              : `Order status is currently "${matched.status}".`;
+          confirmBtn.disabled = true;
+        } else {
+          warnBox.classList.add('hidden');
+          confirmBtn.disabled = false;
+        }
+
+        await writeAuditLog('BARCODE_SCANNED_MATCH', 'orders', matched.id, `Scanned AWB/Order ${code} -> Matched ${matched.order_id}`);
+      } else {
+        // CRITICAL REQUIREMENT: BARCODE NOT FOUND -> AUTO OPEN PRE-FILLED ADD ORDER FORM
+        state.matchedScanOrder = null;
+        document.getElementById('scan-result-found').classList.add('hidden');
+        document.getElementById('scan-result-unknown').classList.remove('hidden');
+
+        document.getElementById('quick-unknown-order-form').reset();
+        document.getElementById('quick-awb').value = code;
+        document.getElementById('quick-pairs').value = 1;
+        document.getElementById('quick-order-id').focus();
+
+        showToast(`Unknown AWB "${code}". Pre-filled quick order form.`, 'warning');
+        await writeAuditLog('BARCODE_SCANNED_NEW_AWB', 'scanner', code, `Scanned unknown AWB ${code}; opened pre-filled order capture`);
+      }
+
+      lucide.createIcons();
+    }
+
+    async function confirmScannedDispatch() {
+      const order = state.matchedScanOrder;
+      if (!order) return;
+
+      const btn = document.getElementById('confirm-dispatch-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Recording Dispatch...</span>';
+
+      try {
+        await executeDispatchRecord(order, 'Scanner');
+        showToast(`Dispatch confirmed for ${order.order_id} (${order.awb})!`, 'success');
+        resetScannerState();
+      } catch (err) {
+        showToast(err.message || 'Failed to record dispatch.', 'error');
+        btn.disabled = false;
+      } finally {
+        btn.innerHTML = '<i data-lucide="check-square" class="w-4 h-4"></i><span>Confirm & Record Dispatch</span>';
+        lucide.createIcons();
+      }
+    }
+
+    async function executeDispatchRecord(order, scanMethod = 'Scanner') {
+      // Prevent duplicate dispatch at database level
+      const { data: existing } = await supabaseClient
+        .from('dispatches')
+        .select('id')
+        .eq('order_uuid', order.id)
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error(`Duplicate Dispatch Blocked: Order ${order.order_id} was already dispatched.`);
+      }
+
+      const nowIso = new Date().toISOString();
+
+      const { data: dispData, error: dispErr } = await supabaseClient.from('dispatches').insert([{
+        order_uuid: order.id,
+        order_id: order.order_id,
+        awb: order.awb,
+        marketplace: order.marketplace,
+        sku: order.sku,
+        product_name: order.product_name,
+        pair_quantity: order.pair_quantity,
+        dispatched_at: nowIso,
+        dispatch_status: 'Dispatched',
+        scan_method: scanMethod,
+        dispatched_by: state.user.id
+      }]).select().single();
+
+      if (dispErr) {
+        if (dispErr.code === '23505') throw new Error('Duplicate dispatch prevented by database constraint.');
+        throw dispErr;
+      }
+
+      const { error: updErr } = await supabaseClient
+        .from('orders')
+        .update({ status: 'Dispatched', updated_at: nowIso })
+        .eq('id', order.id);
+
+      if (updErr) throw updErr;
+
+      await writeAuditLog('DISPATCH_CONFIRMED', 'dispatches', dispData.id, `Dispatched ${order.order_id} (AWB: ${order.awb}, ${order.pair_quantity} pairs)`);
+      await syncAllData(false);
+    }
+
+    // Quick Unknown AWB Form Submit (Supports "Save Order Only" or "Save & Confirm Dispatch")
+    document.getElementById('quick-unknown-order-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitter = e.submitter;
+      const shouldDispatch = submitter && submitter.dataset.dispatch === 'true';
+
+      const awb = document.getElementById('quick-awb').value.trim();
+      const marketplace = document.getElementById('quick-marketplace').value;
+      const orderId = document.getElementById('quick-order-id').value.trim();
+      const sku = document.getElementById('quick-sku').value.trim().toUpperCase();
+      const productName = document.getElementById('quick-product').value.trim();
+      const pairs = parseInt(document.getElementById('quick-pairs').value, 10);
+
+      if (!awb || !orderId || !sku || !productName || isNaN(pairs) || pairs < 1) {
+        showToast('Please fill all fields with valid values.', 'error');
+        return;
+      }
+
+      if (state.orders.some(o => o.order_id.toLowerCase() === orderId.toLowerCase())) {
+        showToast(`Order ID "${orderId}" already exists!`, 'error');
+        return;
+      }
+
+      try {
+        await ensureSkuExists(sku, productName);
+
+        const { data: newOrder, error: orderErr } = await supabaseClient.from('orders').insert([{
+          marketplace,
+          order_id: orderId,
+          awb,
+          sku,
+          product_name: productName,
+          pair_quantity: pairs,
+          order_date: getTodayISTDateInput(),
+          status: 'Pending',
+          created_by: state.user.id
+        }]).select().single();
+
+        if (orderErr) throw orderErr;
+
+        await writeAuditLog('ORDER_CREATED_VIA_SCANNER', 'orders', newOrder.id, `Created ${orderId} for scanned AWB ${awb}`);
+
+        if (shouldDispatch) {
+          await executeDispatchRecord(newOrder, 'Scanner-QuickAdd');
+          showToast(`Order ${orderId} saved & dispatched!`, 'success');
+          resetScannerState();
+        } else {
+          await syncAllData(false);
+          showToast(`Order ${orderId} saved. You can now confirm dispatch.`, 'success');
+          processScannedBarcode(awb); // Switch card to Found mode so user can confirm dispatch
+        }
+      } catch (err) {
+        showToast(err.message || 'Error saving scanned order.', 'error');
+      }
+    });
+
+    function resetScannerState() {
+      state.matchedScanOrder = null;
+      document.getElementById('scanner-input').value = '';
+      document.getElementById('scan-result-found').classList.add('hidden');
+      document.getElementById('scan-result-unknown').classList.add('hidden');
+      document.getElementById('scan-result-idle').classList.remove('hidden');
+      if (window.innerWidth >= 768) {
+        document.getElementById('scanner-input').focus();
+      }
+    }
+
+    /**
+     * 11. HTML5-QRCODE CAMERA SCANNER (ANDROID MOBILE + WEBCAM)
+     */
+    async function startScannerCamera(mode) {
+      await stopScannerCamera('dispatch');
+      await stopScannerCamera('return');
+
+      const elementId = mode === 'dispatch' ? 'reader' : 'return-reader';
+      const startBtn = document.getElementById(mode === 'dispatch' ? 'start-camera-btn' : 'start-return-cam-btn');
+      const stopBtn = document.getElementById(mode === 'dispatch' ? 'stop-camera-btn' : 'stop-return-cam-btn');
+
+      try {
+        const html5QrCode = new Html5Qrcode(elementId);
+        state.html5QrCode = html5QrCode;
+        state.activeScannerType = mode;
+
+        startBtn.classList.add('hidden');
+        stopBtn.classList.remove('hidden');
+
+        await html5QrCode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 260, height: 140 },
+            aspectRatio: 1.5
+          },
+          (decodedText) => {
+            const cleanCode = decodedText.trim();
+            if (!cleanCode) return;
+
+            // Beep feedback via Web Audio API
+            playBeep();
+
+            if (mode === 'dispatch') {
+              document.getElementById('scanner-input').value = cleanCode;
+              stopScannerCamera('dispatch');
+              processScannedBarcode(cleanCode);
+            } else {
+              document.getElementById('return-scan-input').value = cleanCode;
+              stopScannerCamera('return');
+              lookupReturnBarcode();
+            }
+          },
+          () => { /* ignore continuous frame parse errors */ }
+        );
+      } catch (err) {
+        startBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
+        showToast('Camera unavailable or permission denied. Use USB scanner or manual entry.', 'error');
+      }
+    }
+
+    async function stopScannerCamera(mode) {
+      const startBtn = document.getElementById(mode === 'dispatch' ? 'start-camera-btn' : 'start-return-cam-btn');
+      const stopBtn = document.getElementById(mode === 'dispatch' ? 'stop-camera-btn' : 'stop-return-cam-btn');
+      if (startBtn) startBtn.classList.remove('hidden');
+      if (stopBtn) stopBtn.classList.add('hidden');
+
+      if (state.html5QrCode) {
+        try {
+          if (state.html5QrCode.isScanning) {
+            await state.html5QrCode.stop();
+          }
+          state.html5QrCode.clear();
+        } catch (e) { /* safe cleanup */ }
+        state.html5QrCode = null;
+        state.activeScannerType = null;
+      }
+    }
+
+    function playBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.12);
+      } catch (e) {}
+    }
+
+    /**
+     * 12. DISPATCH TABLE & DELIVERY STATUS + COMMISSION ENGINE
+     */
+    function renderDispatchesTable() {
+      const tbody = document.getElementById('dispatches-table-body');
+      const query = (document.getElementById('dispatch-search').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('dispatch-status-filter').value;
+
+      const filtered = state.dispatches.filter(d => {
+        const parentOrder = state.orders.find(o => o.id === d.order_uuid) || {};
+        const effectiveStatus = parentOrder.status || d.dispatch_status;
+        const matchesStatus = statusFilter === 'ALL' || effectiveStatus === statusFilter;
+        const matchesQuery = !query ||
+          d.awb.toLowerCase().includes(query) ||
+          d.order_id.toLowerCase().includes(query) ||
+          d.sku.toLowerCase().includes(query) ||
+          d.product_name.toLowerCase().includes(query);
+        return matchesStatus && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">No dispatch records match your filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(d => {
+        const parentOrder = state.orders.find(o => o.id === d.order_uuid) || {};
+        const currentStatus = parentOrder.status || d.dispatch_status;
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3">
+              <div class="font-mono font-bold text-navy-900">${escapeHtml(d.order_id)}</div>
+              <div class="text-[11px] font-mono text-slate-500">AWB: ${escapeHtml(d.awb)}</div>
+            </td>
+            <td class="py-3 px-3 font-medium">${escapeHtml(d.marketplace)}</td>
+            <td class="py-3 px-3">
+              <div class="font-mono font-bold text-navy-800">${escapeHtml(d.sku)}</div>
+              <div class="text-[11px] text-slate-500 truncate max-w-[190px]">${escapeHtml(d.product_name)}</div>
+            </td>
+            <td class="py-3 px-3 font-bold text-navy-900">${d.pair_quantity}</td>
+            <td class="py-3 px-3 text-slate-600">${formatIST(d.dispatched_at)}</td>
+            <td class="py-3 px-3">
+              <select onchange="handleDeliveryStatusChange('${d.order_uuid}', '${d.id}', this.value)"
+                class="px-2.5 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-navy-900 focus:ring-2 focus:ring-navy-800">
+                ${['Dispatched', 'In Transit', 'Delivered', 'RTO', 'Returned'].map(st =>
+                  `<option value="${st}" ${currentStatus === st ? 'selected' : ''}>${st}</option>`
+                ).join('')}
+              </select>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function handleDeliveryStatusChange(orderUuid, dispatchId, newStatus) {
+      const order = state.orders.find(o => o.id === orderUuid);
+      if (!order) return;
+      const previousStatus = order.status;
+      if (previousStatus === newStatus) return;
+
+      try {
+        const nowIso = new Date().toISOString();
+
+        // Update order and dispatch status (never deleting historical rows)
+        const { error: ordErr } = await supabaseClient
+          .from('orders')
+          .update({ status: newStatus, updated_at: nowIso })
+          .eq('id', orderUuid);
+        if (ordErr) throw ordErr;
+
+        await supabaseClient
+          .from('dispatches')
+          .update({ dispatch_status: newStatus })
+          .eq('id', dispatchId);
+
+        // COMMISSION RULE:
+        // 1. If marked Delivered, create DELIVERY_CREDIT if not already credited (or if net credited is 0)
+        if (newStatus === 'Delivered') {
+          const orderLedger = state.ledger.filter(l => l.order_uuid === orderUuid);
+          const netPairsCredited = orderLedger.reduce((acc, l) =>
+            l.entry_type === 'DELIVERY_CREDIT' ? acc + Number(l.pairs) : acc - Math.abs(Number(l.pairs)), 0
+          );
+
+          if (netPairsCredited <= 0) {
+            const amount = order.pair_quantity * COMMISSION_RATE_INR;
+            const { error: ledErr } = await supabaseClient.from('commission_ledger').insert([{
+              order_uuid: order.id,
+              order_id: order.order_id,
+              entry_type: 'DELIVERY_CREDIT',
+              pairs: order.pair_quantity,
+              rate_per_pair: COMMISSION_RATE_INR,
+              amount: amount,
+              notes: `Commission earned on delivery of ${order.pair_quantity} pairs`,
+              created_by: state.user.id
+            }]);
+            if (ledErr) throw ledErr;
+            showToast(`Delivered! +₹${amount} commission credited (${order.pair_quantity} pairs × ₹2).`, 'success');
+          } else {
+            showToast(`Status updated to Delivered.`, 'success');
+          }
+        }
+        // 2. If a previously Delivered order gets marked Returned or RTO -> Post SEPARATE negative adjustment
+        else if ((newStatus === 'Returned' || newStatus === 'RTO') && previousStatus === 'Delivered') {
+          await postNegativeCommissionAdjustment(order, order.pair_quantity, `Status changed from Delivered to ${newStatus}`);
+          showToast(`Status set to ${newStatus}. Negative commission adjustment posted to ledger.`, 'warning');
+        } else {
+          showToast(`Shipment status updated to ${newStatus}.`, 'success');
+        }
+
+        await writeAuditLog('DELIVERY_STATUS_UPDATED', 'orders', order.id, `${order.order_id}: ${previousStatus} → ${newStatus}`);
+        await syncAllData(false);
+      } catch (err) {
+        showToast(err.message || 'Error updating status.', 'error');
+        await syncAllData(false);
+      }
+    }
+
+    async function postNegativeCommissionAdjustment(order, returnedPairs, reasonText) {
+      // Check if an active delivery credit exists that hasn't been reversed yet
+      const orderLedger = state.ledger.filter(l => l.order_uuid === order.id);
+      const netCreditedPairs = orderLedger.reduce((acc, l) =>
+        l.entry_type === 'DELIVERY_CREDIT' ? acc + Number(l.pairs) : acc - Math.abs(Number(l.pairs)), 0
+      );
+
+      if (netCreditedPairs > 0) {
+        const pairsToReverse = Math.min(netCreditedPairs, returnedPairs);
+        const negativeAmount = -1 * pairsToReverse * COMMISSION_RATE_INR;
+
+        const { error } = await supabaseClient.from('commission_ledger').insert([{
+          order_uuid: order.id,
+          order_id: order.order_id,
+          entry_type: 'RETURN_ADJUSTMENT',
+          pairs: -pairsToReverse,
+          rate_per_pair: COMMISSION_RATE_INR,
+          amount: negativeAmount,
+          notes: `Commission reversal: ${reasonText}`,
+          created_by: state.user.id
+        }]);
+        if (error) throw error;
+      }
+    }
+
+    /**
+     * 13. RETURNS / RTO MANAGEMENT
+     */
+    document.getElementById('return-scan-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupReturnBarcode();
+      }
+    });
+
+    function lookupReturnBarcode() {
+      const code = document.getElementById('return-scan-input').value.trim();
+      if (!code) return;
+
+      document.getElementById('ret-awb').value = code;
+
+      const matched = state.orders.find(o =>
+        o.awb.toLowerCase() === code.toLowerCase() ||
+        o.order_id.toLowerCase() === code.toLowerCase()
+      );
+
+      if (matched) {
+        document.getElementById('ret-order-id').value = matched.order_id;
+        document.getElementById('ret-sku').value = matched.sku;
+        document.getElementById('ret-pairs').value = matched.pair_quantity;
+        showToast(`Matched original order ${matched.order_id} (${matched.pair_quantity} pairs).`, 'success');
+      } else {
+        showToast('AWB populated. Enter Original Order ID & SKU if return AWB differs from forward AWB.', 'info');
+      }
+    }
+
+    document.getElementById('return-entry-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-return-btn');
+
+      const returnAwb = document.getElementById('ret-awb').value.trim();
+      const originalOrderId = document.getElementById('ret-order-id').value.trim();
+      const sku = document.getElementById('ret-sku').value.trim().toUpperCase();
+      const returnedPairs = parseInt(document.getElementById('ret-pairs').value, 10);
+      const returnDate = document.getElementById('ret-date').value;
+      const returnReason = document.getElementById('ret-reason').value;
+      const condition = document.getElementById('ret-condition').value;
+      const restockStatus = document.getElementById('ret-restock').value;
+
+      if (!returnAwb || !originalOrderId || !sku || isNaN(returnedPairs) || returnedPairs < 1) {
+        showToast('Please fill all required return details.', 'error');
+        return;
+      }
+
+      // Prevent duplicate return scan for same Return AWB
+      if (state.returns.some(r => r.return_awb.toLowerCase() === returnAwb.toLowerCase())) {
+        showToast(`Duplicate Return Blocked: Return AWB "${returnAwb}" is already logged.`, 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Saving Return...</span>';
+
+      try {
+        const matchedOrder = state.orders.find(o => o.order_id.toLowerCase() === originalOrderId.toLowerCase());
+        const targetStatus = returnReason.startsWith('RTO') ? 'RTO' : 'Returned';
+
+        const { data: retData, error: retErr } = await supabaseClient.from('returns').insert([{
+          order_uuid: matchedOrder ? matchedOrder.id : null,
+          return_awb: returnAwb,
+          original_order_id: originalOrderId,
+          sku,
+          returned_pairs: returnedPairs,
+          return_date: returnDate,
+          return_reason: returnReason,
+          product_condition: condition,
+          restock_status: restockStatus,
+          recorded_by: state.user.id
+        }]).select().single();
+
+        if (retErr) throw retErr;
+
+        // Update original order status (never deleting dispatch record)
+        if (matchedOrder) {
+          const wasDelivered = matchedOrder.status === 'Delivered';
+
+          await supabaseClient
+            .from('orders')
+            .update({ status: targetStatus, updated_at: new Date().toISOString() })
+            .eq('id', matchedOrder.id);
+
+          await supabaseClient
+            .from('dispatches')
+            .update({ dispatch_status: targetStatus })
+            .eq('order_uuid', matchedOrder.id);
+
+          // If previously Delivered, post negative commission adjustment
+          if (wasDelivered) {
+            await postNegativeCommissionAdjustment(matchedOrder, returnedPairs, `Return AWB ${returnAwb} (${returnReason})`);
+          }
+        }
+
+        await writeAuditLog('RETURN_RECORDED', 'returns', retData.id, `Logged ${returnReason} for Order ${originalOrderId}, Return AWB ${returnAwb}, ${returnedPairs} pairs`);
+
+        document.getElementById('return-entry-form').reset();
+        document.getElementById('return-scan-input').value = '';
+        document.getElementById('ret-date').value = getTodayISTDateInput();
+        document.getElementById('ret-pairs').value = 1;
+
+        await syncAllData(false);
+        showToast(`Return recorded for ${originalOrderId}. Original dispatch preserved.`, 'success');
+      } catch (err) {
+        showToast(err.message || 'Failed to save return record.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="undo-2" class="w-4 h-4"></i><span>Record Return & Adjust Ledger</span>';
+        lucide.createIcons();
+      }
+    });
+
+    function renderReturnsTable() {
+      const tbody = document.getElementById('returns-table-body');
+      const query = (document.getElementById('returns-search').value || '').toLowerCase().trim();
+
+      const filtered = state.returns.filter(r =>
+        !query ||
+        r.return_awb.toLowerCase().includes(query) ||
+        r.original_order_id.toLowerCase().includes(query) ||
+        r.sku.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-400">No returns or RTO records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(r => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-3">
+            <div class="font-mono font-bold text-red-700">${escapeHtml(r.return_awb)}</div>
+            <div class="text-[11px] font-mono text-slate-500">Order: ${escapeHtml(r.original_order_id)}</div>
+          </td>
+          <td class="py-3 px-3">
+            <span class="font-mono font-bold text-navy-900">${escapeHtml(r.sku)}</span>
+            <span class="text-slate-600"> (${r.returned_pairs} pairs)</span>
+          </td>
+          <td class="py-3 px-3 text-slate-700">${escapeHtml(r.return_reason)}</td>
+          <td class="py-3 px-3">
+            <div class="font-semibold text-slate-800">${escapeHtml(r.product_condition)}</div>
+            <div class="text-[11px] text-emerald-700 font-medium">${escapeHtml(r.restock_status)}</div>
+          </td>
+          <td class="py-3 px-3 text-slate-500">${formatIST(r.return_date, false)}</td>
+        </tr>
+      `).join('');
+    }
+
+    /**
+     * 14. COMMISSION LEDGER RENDERING
+     */
+    function renderCommissionLedger() {
+      let credits = 0;
+      let debits = 0;
+
+      state.ledger.forEach(item => {
+        const amt = Number(item.amount || 0);
+        if (item.entry_type === 'DELIVERY_CREDIT') credits += amt;
+        else debits += amt;
+      });
+
+      document.getElementById('ledger-total-credits').textContent = `₹${credits.toLocaleString('en-IN')}`;
+      document.getElementById('ledger-total-debits').textContent = `₹${debits.toLocaleString('en-IN')}`;
+      document.getElementById('ledger-net-balance').textContent = `₹${(credits + debits).toLocaleString('en-IN')}`;
+
+      const tbody = document.getElementById('commission-table-body');
+      if (state.ledger.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">No commission entries yet. Mark dispatched orders as Delivered to generate commission.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.ledger.map(item => {
+        const isCredit = item.entry_type === 'DELIVERY_CREDIT';
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3 text-slate-600">${formatIST(item.created_at)}</td>
+            <td class="py-3 px-3 font-mono font-bold text-navy-900">${escapeHtml(item.order_id)}</td>
+            <td class="py-3 px-3">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isCredit ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${isCredit ? 'Delivery Credit' : 'Return Adjustment'}
+              </span>
+              <div class="text-[11px] text-slate-400 mt-0.5">${escapeHtml(item.notes || '')}</div>
+            </td>
+            <td class="py-3 px-3 font-bold">${item.pairs > 0 ? `+${item.pairs}` : item.pairs}</td>
+            <td class="py-3 px-3 text-slate-600">₹${item.rate_per_pair}/pair</td>
+            <td class="py-3 px-3 text-right font-extrabold ${isCredit ? 'text-emerald-700' : 'text-rose-600'}">
+              ${item.amount >= 0 ? `+₹${item.amount}` : `-₹${Math.abs(item.amount)}`}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * 15. SKU MASTER MANAGEMENT & HISTORY
+     */
+    function renderSkuDatalist() {
+      const dl = document.getElementById('sku-datalist');
+      dl.innerHTML = state.products.map(p =>
+        `<option value="${escapeHtml(p.sku)}">${escapeHtml(p.product_name)}</option>`
+      ).join('');
+    }
+
+    document.getElementById('sku-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('sku-edit-id').value;
+      const skuCode = document.getElementById('sku-code-input').value.trim().toUpperCase();
+      const prodName = document.getElementById('sku-name-input').value.trim();
+
+      if (!skuCode || !prodName) return;
+
+      try {
+        if (editId) {
+          const { error } = await supabaseClient
+            .from('products')
+            .update({ product_name: prodName, updated_at: new Date().toISOString() })
+            .eq('id', editId);
+          if (error) throw error;
+          await writeAuditLog('SKU_UPDATED', 'products', editId, `Updated SKU ${skuCode} product name to "${prodName}"`);
+          showToast(`SKU ${skuCode} updated.`, 'success');
+        } else {
+          if (state.products.some(p => p.sku.toUpperCase() === skuCode)) {
+            showToast(`SKU "${skuCode}" already exists.`, 'error');
+            return;
+          }
+          const { data, error } = await supabaseClient
+            .from('products')
+            .insert([{ sku: skuCode, product_name: prodName, created_by: state.user.id }])
+            .select()
+            .single();
+          if (error) throw error;
+          await writeAuditLog('SKU_CREATED', 'products', data.id, `Added SKU ${skuCode}: "${prodName}"`);
+          showToast(`SKU ${skuCode} added.`, 'success');
+        }
+
+        resetSkuForm();
+        await syncAllData(false);
+      } catch (err) {
+        showToast(err.message || 'Failed to save SKU.', 'error');
+      }
+    });
+
+    function editSku(id) {
+      const prod = state.products.find(p => p.id === id);
+      if (!prod) return;
+      document.getElementById('sku-edit-id').value = prod.id;
+      document.getElementById('sku-code-input').value = prod.sku;
+      document.getElementById('sku-code-input').readOnly = true;
+      document.getElementById('sku-name-input').value = prod.product_name;
+      document.getElementById('sku-form-title').textContent = `Edit SKU: ${prod.sku}`;
+      document.getElementById('cancel-sku-edit-btn').classList.remove('hidden');
+    }
+
+    function resetSkuForm() {
+      document.getElementById('sku-form').reset();
+      document.getElementById('sku-edit-id').value = '';
+      document.getElementById('sku-code-input').readOnly = false;
+      document.getElementById('sku-form-title').textContent = 'Add New Bracket SKU';
+      document.getElementById('cancel-sku-edit-btn').classList.add('hidden');
+    }
+
+    function renderSkusTable() {
+      const tbody = document.getElementById('skus-table-body');
+      const query = (document.getElementById('sku-search-input').value || '').toLowerCase().trim();
+
+      const filtered = state.products.filter(p =>
+        !query || p.sku.toLowerCase().includes(query) || p.product_name.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">No SKUs registered yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        const skuUpper = p.sku.toUpperCase();
+        const dispPairs = state.dispatches
+          .filter(d => d.sku.toUpperCase() === skuUpper)
+          .reduce((s, d) => s + Number(d.pair_quantity || 0), 0);
+        const delivPairs = state.orders
+          .filter(o => o.sku.toUpperCase() === skuUpper && o.status === 'Delivered')
+          .reduce((s, o) => s + Number(o.pair_quantity || 0), 0);
+        const retPairs = state.returns
+          .filter(r => r.sku.toUpperCase() === skuUpper)
+          .reduce((s, r) => s + Number(r.returned_pairs || 0), 0);
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3 font-mono font-bold text-navy-900">${escapeHtml(p.sku)}</td>
+            <td class="py-3 px-3 font-medium text-slate-800">${escapeHtml(p.product_name)}</td>
+            <td class="py-3 px-3 text-center font-bold text-blue-700">${dispPairs}</td>
+            <td class="py-3 px-3 text-center font-bold text-emerald-700">${delivPairs}</td>
+            <td class="py-3 px-3 text-center font-bold text-red-600">${retPairs}</td>
+            <td class="py-3 px-3 text-right space-x-1">
+              <button onclick="editSku('${p.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-navy-900 rounded-lg text-[11px] font-semibold">Edit</button>
+              <button onclick="openSkuHistoryModal('${escapeHtml(p.sku)}', '${escapeHtml(p.product_name)}')" class="px-2.5 py-1 bg-navy-900 text-gold-400 rounded-lg text-[11px] font-semibold">History</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openSkuHistoryModal(sku, productName) {
+      document.getElementById('sku-modal-title').textContent = `SKU History: ${sku}`;
+      document.getElementById('sku-modal-subtitle').textContent = productName;
+
+      const matchingOrders = state.orders.filter(o => o.sku.toUpperCase() === sku.toUpperCase());
+      const body = document.getElementById('sku-history-body');
+
+      if (matchingOrders.length === 0) {
+        body.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">No orders recorded for this SKU yet.</td></tr>`;
+      } else {
+        body.innerHTML = matchingOrders.map(o => `
+          <tr>
+            <td class="py-2.5 px-3 text-slate-600">${formatIST(o.order_date, false)}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-navy-900">${escapeHtml(o.order_id)}</td>
+            <td class="py-2.5 px-3">${escapeHtml(o.marketplace)}</td>
+            <td class="py-2.5 px-3 font-bold">${o.pair_quantity}</td>
+            <td class="py-2.5 px-3">${getStatusBadge(o.status)}</td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('sku-history-modal').classList.remove('hidden');
+    }
+
+    function closeSkuHistoryModal() {
+      document.getElementById('sku-history-modal').classList.add('hidden');
+    }
+
+    /**
+     * 16. AUDIT LOGS RENDERING
+     */
+    function renderAuditLogs() {
+      const tbody = document.getElementById('audit-table-body');
+      if (state.auditLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-10 text-center text-slate-400">No audit events recorded yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.auditLogs.map(log => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${formatIST(log.created_at)}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-navy-900">${escapeHtml(log.action)}</td>
+          <td class="py-2.5 px-3 text-slate-600">${escapeHtml(log.entity_type)}</td>
+          <td class="py-2.5 px-3 text-slate-700">${escapeHtml(log.details)}</td>
+        </tr>
+      `).join('');
+    }
+
+    /**
+     * 17. BOOTSTRAP APPLICATION ON LOAD
+     */
+    window.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      startISTClock();
+
+      const connected = await verifySupabaseConnection();
+      if (connected) {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          await initializeAuthenticatedSession(session.user);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
